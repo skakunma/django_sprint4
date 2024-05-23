@@ -34,9 +34,8 @@ def post_detail(request, id):
 
     if request.user != post.author:
         if not (
-            post.is_published and 
-            post.pub_date <= timezone.now() and 
-            post.category.is_published
+            post.is_published and post.pub_date <= timezone.now()
+            and post.category.is_published
         ):
             raise Http404
 
@@ -163,4 +162,5 @@ def edit_comment(request, post_id, comment_id):
             return redirect('blog:post_detail', id=post_id)
     else:
         form = CommentForm(instance=comment)
-    return render(request, 'blog/comment.html', {'form': form, 'comment': comment})
+    return render(request, 'blog/comment.html',
+                  {'form': form, 'comment': comment})
