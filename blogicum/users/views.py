@@ -8,6 +8,7 @@ from blog.models import Post
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count
 
+
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -20,10 +21,12 @@ def register(request):
         form = UserCreationForm()
     return render(request, 'registration/registration_form.html', {'form': form})
 
+
 def profile(request, username):
     user = get_object_or_404(User, username=username)
-    posts = Post.objects.filter(author=user).annotate(comment_count=Count('comments')).order_by('-pub_date')
-    
+    posts = Post.objects.filter(author=user).annotate(
+        comment_count=Count('comments')).order_by('-pub_date')
+
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
     try:
@@ -32,7 +35,7 @@ def profile(request, username):
         page_obj = paginator.page(1)
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
-    
+
     context = {
         'profile': user,
         'is_owner': request.user == user,

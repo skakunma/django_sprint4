@@ -64,7 +64,8 @@ class Post(BaseModel):
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL,
         null=True, verbose_name='Категория')
-    image = models.ImageField('Изображение', upload_to='posts/', null=True, blank=True)
+    image = models.ImageField('Изображение', upload_to='posts/', 
+                              null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -73,9 +74,12 @@ class Post(BaseModel):
         verbose_name = 'публикация'
         verbose_name_plural = 'Публикации'
 
+
 class Comment(BaseModel):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments', verbose_name='Публикация')
-    author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Автор')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE,
+                             related_name='comments', verbose_name='Публикация')
+    author = models.ForeignKey(User, on_delete=models.CASCADE,
+                               verbose_name='Автор')
     text = models.TextField('Текст комментария')
 
     def __str__(self):

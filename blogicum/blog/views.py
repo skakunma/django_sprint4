@@ -4,7 +4,6 @@ from .models import Post, Category, Comment
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm, CommentForm
 from django.db.models import Count
-from django.contrib.auth.models import User
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import Http404
 
@@ -15,7 +14,7 @@ def index(request):
         pub_date__lte=timezone.now(),
         category__is_published=True,
     ).annotate(comment_count=Count('comments')).order_by('-pub_date')
-    
+
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     try:
@@ -24,17 +23,21 @@ def index(request):
         page_obj = paginator.page(1)
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
-    
+
     context = {'page_obj': page_obj}
     return render(request, 'blog/index.html', context)
+
 
 @login_required
 def post_detail(request, id):
     post = get_object_or_404(Post, pk=id)
 
-    # Проверяем, является ли текущий пользователь автором поста
     if request.user != post.author:
-        if not post.is_published or post.pub_date > timezone.now() or not post.category.is_published:
+        if not (
+            post.is_published and 
+            post.pub_date <= timezone.now() and 
+            post.category.is_published
+        ):
             raise Http404
 
     comments = post.comments.order_by('created_at')
@@ -50,12 +53,13 @@ def post_detail(request, id):
 
 
 def category_posts(request, category_slug):
-    category = get_object_or_404(Category, slug=category_slug, is_published=True)
+    category = get_object_or_404(
+        Category, slug=category_slug, is_published=True)
     post_list = category.post_set.filter(
         is_published=True,
         pub_date__lte=timezone.now()
     ).annotate(comment_count=Count('comments')).order_by('-pub_date')
-    
+
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     try:
@@ -64,18 +68,18 @@ def category_posts(request, category_slug):
         page_obj = paginator.page(1)
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
-    
+
     context = {'category': category, 'page_obj': page_obj}
     return render(request, 'blog/category.html', context)
+
 
 @login_required
 def edit_post(request, id):
     post = get_object_or_404(Post, pk=id)
-    
-    # Проверка прав доступа
+
     if request.user != post.author:
         return redirect('blog:post_detail', id=post.id)
-    
+
     if request.method == 'POST':
         form = PostForm(request.POST, instance=post)
         if form.is_valid():
@@ -84,36 +88,38 @@ def edit_post(request, id):
             return redirect('blog:post_detail', id=post.id)
     else:
         form = PostForm(instance=post)
-    
+
     return render(request, 'blog/create.html', {'form': form})
+
 
 @login_required
 def delete_post(request, id):
     post = get_object_or_404(Post, pk=id)
-    
-    # Проверка прав доступа
+
     if request.user != post.author:
         return redirect('blog:post_detail', id=post.id)
-    
+
     if request.method == 'POST':
         post.delete()
         return redirect('blog:index')
-    
+
     return render(request, 'blog/create.html', {'form': post})
+
 
 @login_required
 def delete_comment(request, post_id, comment_id):
     comment = get_object_or_404(Comment, pk=comment_id)
-    
+
     # Проверка прав доступа
     if request.user != comment.author:
         return redirect('blog:post_detail', id=post_id)
-    
+
     if request.method == 'POST':
         comment.delete()
         return redirect('blog:post_detail', id=post_id)
-    
+
     return render(request, 'blog/comment.html', {'object': comment})
+
 
 @login_required
 def create_post(request):
@@ -127,6 +133,7 @@ def create_post(request):
     else:
         form = PostForm()
     return render(request, 'blog/create.html', {'form': form})
+
 
 @login_required
 def add_comment(request, post_id):
@@ -142,6 +149,7 @@ def add_comment(request, post_id):
             return redirect('blog:post_detail', id=post_id)
 
     return render(request, 'blog/comment.html', {'form': form})
+
 
 @login_required
 def edit_comment(request, post_id, comment_id):

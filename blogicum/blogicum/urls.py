@@ -16,7 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, reverse_lazy
 from django.contrib.auth.views import (
-    LoginView, LogoutView, PasswordChangeView, PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
+    LoginView, LogoutView, PasswordChangeView, PasswordResetView,
+    PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 
 )
 from django.conf import settings
@@ -31,42 +32,40 @@ urlpatterns = [
     path('auth/', include('django.contrib.auth.urls')),
     path('', include('blog.urls', namespace='blog')),
     path('pages/', include('pages.urls', namespace='pages')),
-    path('auth/login/', 
-         LoginView.as_view(template_name='registration/login.html'), 
+    path('auth/login/',
+         LoginView.as_view(template_name='registration/login.html'),
          name='login'),
-
-    # Выход
-    path('auth/logout/', 
-         LogoutView.as_view(template_name='registration/logged_out.html'), 
+    path('auth/logout/',
+         LogoutView.as_view(template_name='registration/logged_out.html'),
          name='logout'),
-
-    # Изменение пароля
-    path('auth/password_change/', 
-         PasswordChangeView.as_view(template_name='registration/password_change_form.html'), 
+    path('auth/password_change/',
+         PasswordChangeView.as_view(
+             template_name='registration/password_change_form.html'),
          name='password_change'),
-
-    # Страница успешного изменения пароля
-    path('auth/password_reset/', PasswordResetView.as_view(), name='password_reset'),
-    path('auth/password_reset/done/', PasswordResetDoneView.as_view(), name='password_change_done'),
-    path('auth/reset/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    path('auth/reset/done/', PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    path('auth/password_reset/', PasswordResetView.as_view(),
+         name='password_reset'),
+    path('auth/password_reset/done/', PasswordResetDoneView.as_view(),
+         name='password_change_done'),
+    path('auth/reset/<uidb64>/<token>/', PasswordResetConfirmView.as_view(),
+         name='password_reset_confirm'),
+    path('auth/reset/done/', PasswordResetCompleteView.as_view(),
+         name='password_reset_complete'),
 
     path(
-        'auth/registration/', 
+        'auth/registration/',
         CreateView.as_view(
             template_name='registration/registration_form.html',
             form_class=django.contrib.auth.forms.UserCreationForm,
             success_url=reverse_lazy('blog:index'),
         ),
-        name='registration',
-    ),
+        name='registration',),
     path('edit/profile/', user_views.edit_profile, name='edit_profile'),
     path('logout/', LogoutView.as_view(template_name='logged_out.html'),
-         name='logout',
-     ),
+         name='logout',),
 ]
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL,
+                          document_root=settings.MEDIA_ROOT)
 
 handler404 = 'pages.views.page_not_found'
 handler500 = 'pages.views.server_error'
